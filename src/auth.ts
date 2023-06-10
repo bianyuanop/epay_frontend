@@ -8,4 +8,4 @@
 
   // Replace https://identity.ic0.app with NFID_AUTH_URL
   // as the identityProvider for authClient.login({}) 
-  const NFID_AUTH_URL = "https://nfid.one" + AUTH_PATH;
+  export const NFID_AUTH_URL = "https://nfid.one" + AUTH_PATH;
