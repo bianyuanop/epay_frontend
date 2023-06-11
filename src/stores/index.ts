@@ -3,11 +3,11 @@ import { defineStore } from 'pinia';
 
 export const useGeneralStore = defineStore('general', {
     state: () => ({
-        principal: Principal.anonymous(),
+        principal: Principal.anonymous().toString(),
     }),
     actions: {
         set_principal(p: Principal) {
-            this.principal = p;
+            this.principal = p.toString();
         }
     }
 })

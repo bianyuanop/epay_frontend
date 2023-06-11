@@ -31,6 +31,7 @@ export interface _SERVICE {
   'create_merchant' : ActorMethod<[Principal], Result_1>,
   'get_merchant_by_id' : ActorMethod<[bigint], [] | [Principal]>,
   'get_merchant_conf' : ActorMethod<[bigint], Result_2>,
+  'get_user_canister' : ActorMethod<[], [] | [Principal]>,
   'install_user_canister' : ActorMethod<[], Result_3>,
   'remove_manager' : ActorMethod<[Principal], Result>,
   'set_merchant_block' : ActorMethod<[bigint, boolean], Result>,

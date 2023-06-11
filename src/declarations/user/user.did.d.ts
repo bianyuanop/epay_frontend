@@ -4,6 +4,8 @@ import type { ActorMethod } from '@dfinity/agent';
 export interface OrderBrief { 'merchant_id' : bigint, 'order_id' : bigint }
 export type Result = { 'Ok' : boolean } |
   { 'Err' : string };
+export type Result_1 = { 'Ok' : null } |
+  { 'Err' : string };
 export interface User {
   'id' : bigint,
   'principal' : Principal,
@@ -14,6 +16,8 @@ export interface User {
 }
 export interface _SERVICE {
   'add_order' : ActorMethod<[Principal, bigint, bigint], Result>,
+  'attach_merchant2user' : ActorMethod<[Principal, bigint], Result_1>,
   'get_user' : ActorMethod<[Principal], [] | [User]>,
-  'register' : ActorMethod<[Principal], undefined>,
+  'has_user' : ActorMethod<[Principal], boolean>,
+  'register' : ActorMethod<[Principal], Result_1>,
 }

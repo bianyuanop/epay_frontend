@@ -27,40 +27,33 @@ export default defineComponent({
 })
 </script>
 
-
 <template>
-  <div class="container mx-auto">
-    <div class="header">
-      <Header /> 
-    </div> 
+  <n-dialog-provider>
+  <n-message-provider>
+    <div class="container mx-auto">
+      <div class="header">
+        <Header /> 
+      </div> 
 
-    <div class="p-20">
-      <div class="pb-2"> GOTO: </div>
+      <div class="p-20">
+        <div class="pb-2"> GOTO: </div>
 
 
-      <div class="flex flex-col space-y-2 text-white">
-        <div 
-          class="bg-purple-500 p-5 cursor-pointer"
-          @click="$router.push('/user')"
-        >> User Panel</div>
-        <div 
-          class="bg-purple-500 p-5 cursor-pointer"
-          @click="$router.push('/merchant')"
-        >> Merchant Panel</div>
+        <div class="flex flex-col space-y-2 text-white">
+          <div 
+            class="bg-purple-500 p-5 cursor-pointer"
+            @click="$router.push('/user')"
+          >> User Panel</div>
+          <div 
+            class="bg-purple-500 p-5 cursor-pointer"
+            @click="$router.push('/merchant')"
+          >> Merchant Panel</div>
+        </div>
       </div>
+
+      <RouterView></RouterView>
     </div>
-
-    <RouterView></RouterView>
-
-  </div>
-  <!-- <div>
-    <button @click="() => {
-      get_merchant_by_id(BigInt(0)).then(v => {
-        console.log(v);
-      }).catch(e => {
-        console.log('Err on querying: ', e);
-      })
-    }">query</button>
-
-  </div> -->
+  </n-message-provider>
+  </n-dialog-provider>
+  
 </template>

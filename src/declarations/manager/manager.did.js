@@ -33,6 +33,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'get_merchant_conf' : IDL.Func([IDL.Nat64], [Result_2], []),
+    'get_user_canister' : IDL.Func([], [IDL.Opt(IDL.Principal)], ['query']),
     'install_user_canister' : IDL.Func([], [Result_3], []),
     'remove_manager' : IDL.Func([IDL.Principal], [Result], []),
     'set_merchant_block' : IDL.Func([IDL.Nat64, IDL.Bool], [Result], []),
