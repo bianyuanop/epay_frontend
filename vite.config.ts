@@ -1,7 +1,12 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
-import dfxJson from "./dfx.json";
+import dfxJson from "./dfx.json"
+
+import Components from 'unplugin-vue-components/vite'
+import AutoImport from 'unplugin-auto-import/vite'
+import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
+
 
 
 let localCanisters, prodCanisters, canisters;
@@ -58,7 +63,25 @@ console.log(aliases);
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    AutoImport({
+      imports: [
+        'vue',
+        {
+          'naive-ui': [
+            'useDialog',
+            'useMessage',
+            'useNotification',
+            'useLoadingBar'
+          ]
+        }
+      ]
+    }),
+    Components({
+      resolvers: [NaiveUiResolver()]
+    })
+  ],
   resolve: {
     alias: {
       ...aliases,
@@ -66,6 +89,7 @@ export default defineConfig({
   },
   define: {
     "process.env": process.env,
+    "global": "window"
   },
   server: {
     proxy: {

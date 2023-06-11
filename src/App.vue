@@ -2,18 +2,16 @@
 import { defineComponent } from 'vue'
 import { manager } from './declarations/manager';
 import { Principal } from '@dfinity/principal';
-import { mapActions, mapState } from 'pinia';
-import { useGeneralStore } from './stores';
-import { AuthClient } from '@dfinity/auth-client';
-import {NFID_AUTH_URL} from './auth';
+import { manager_actor } from './info';
+import Header from './components/Header.vue';
 // import { manager } from './declarations/manager';
 
 export default defineComponent({
+  components: {
+    Header
+  },
   data() {
     return {}
-  },
-  computed: {
-    ...mapState(useGeneralStore, ['principal'])
   },
   methods: {
     async add_manager(p: string) {
@@ -21,31 +19,48 @@ export default defineComponent({
       console.log(res)
     },
 
-    async login() {
-      const authClient = await AuthClient.create();
-      authClient.login({
-        identityProvider: NFID_AUTH_URL,
-        maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000),
-        windowOpenerFeatures: 
-          `left=${window.screen.width / 2 - 525 / 2}, `+ 
-          `top=${window.screen.height / 2 - 705 / 2},` + 
-          `toolbar=0,location=0,menubar=0,width=525,height=705`,
-        onSuccess: async () => {
-          let p = authClient.getIdentity().getPrincipal();
-          this.set_principal(p);
-          console.log(`successuflly logged in: ${p}`);
-        } 
-      })
+    async get_merchant_by_id(id: bigint) {
+      let query_res = await manager_actor.get_merchant_by_id(id);
+      return query_res[0]
     },
-
-    ...mapActions(useGeneralStore, ['set_principal']),
   }
 })
 </script>
 
 
 <template>
-  <div>
-    <button @click="login">Login</button> 
+  <div class="container mx-auto">
+    <div class="header">
+      <Header /> 
+    </div> 
+
+    <div class="p-20">
+      <div class="pb-2"> GOTO: </div>
+
+
+      <div class="flex flex-col space-y-2 text-white">
+        <div 
+          class="bg-purple-500 p-5 cursor-pointer"
+          @click="$router.push('/user')"
+        >> User Panel</div>
+        <div 
+          class="bg-purple-500 p-5 cursor-pointer"
+          @click="$router.push('/merchant')"
+        >> Merchant Panel</div>
+      </div>
+    </div>
+
+    <RouterView></RouterView>
+
   </div>
+  <!-- <div>
+    <button @click="() => {
+      get_merchant_by_id(BigInt(0)).then(v => {
+        console.log(v);
+      }).catch(e => {
+        console.log('Err on querying: ', e);
+      })
+    }">query</button>
+
+  </div> -->
 </template>
