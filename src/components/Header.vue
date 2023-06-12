@@ -1,12 +1,8 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useGeneralStore } from '../stores';
 import { mapActions, mapState } from 'pinia';
-import { AuthClient } from '@dfinity/auth-client';
-import {NFID_AUTH_URL} from '../auth';
-
-import { user_actor, manager_actor} from '../info';
-import { Principal } from '@dfinity/principal';
+import { manager_actor} from '../info';
+import { userAuthStore } from '../stores/auth';
 
 export default defineComponent({
   data() {
@@ -24,53 +20,27 @@ export default defineComponent({
     return res;
   },
   computed: {
-    ...mapState(useGeneralStore, ['principal', 'authClient']),
+    ...mapState(userAuthStore, ['isAuthenticated'])
   },
   methods: {
-    ...mapActions(useGeneralStore, ['set_principal']),
-    async login() {
-      const authClient = await AuthClient.create();
-      authClient.login({
-        identityProvider: NFID_AUTH_URL,
-        maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000),
-        windowOpenerFeatures: 
-          `left=${window.screen.width / 2 - 525 / 2}, `+ 
-          `top=${window.screen.height / 2 - 705 / 2},` + 
-          `toolbar=0,location=0,menubar=0,width=525,height=705`,
-        onSuccess: async () => {
-          let p = authClient.getIdentity().getPrincipal();
-          console.log(p.toString());
-
-          let registered = await user_actor.has_user(p);
-          if(!registered) {
-            user_actor.register(p).then(() => {
-              console.log('register successfully')
-            }).catch(e => {
-              console.log('register failed', e);
-            });
-          } else console.log('registered');
-
-          this.set_principal(p);
-        } 
-      })
-    },
-    isAnonymous(p: String): boolean {
-      return Principal.anonymous().toString() == p;
-    },
-    async applyMerchant() {
-      if(this.principal ===  Principal.anonymous().toString()) {
-        return;
-      }
+    ...mapActions(userAuthStore, ['login', 'getPrincipal']),
+    login_and_register() {
+      this.login();
     },
     async acceptApplication() {
-      // this.showApplyModal = false;
+      let p = await this.getPrincipal();
+      if(p === undefined) {
+        console.log('acceptApplication: not logged in');
+        return;
+      }
+
       this.applying = true;
 
       const ticking_handler = setInterval(() => {
         if(this.percentage < 75) this.percentage = this.percentage += 1;
       }, 100)
 
-      let creation_res = await manager_actor.create_merchant(Principal.fromText(this.principal));
+      let creation_res = await manager_actor.create_merchant(p);
       console.log(creation_res)
 
       clearInterval(ticking_handler);
@@ -97,7 +67,7 @@ export default defineComponent({
       <div 
         class="cursor-pointer text-purple-800" 
         @click="showApplyModal = true"
-        v-if="!isAnonymous(principal)"
+        v-if="isAuthenticated"
       >Apply Merchant</div>
       <n-modal 
         :show="showApplyModal"
@@ -124,14 +94,8 @@ export default defineComponent({
           </div>
         </n-card>
       </n-modal>
-      <n-button 
-        @click="login"
-        v-if="isAnonymous(principal)"
-      >Login</n-button>
-      <n-button 
-        @click="$router.push('/user')"
-        v-else
-      >Mine</n-button>
+      <n-button @click="login_and_register">Login</n-button>
+      <n-button @click="$router.push('/user')" >Mine</n-button>
     </div>
   </div>
 </template>

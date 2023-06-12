@@ -1,13 +1,15 @@
-import { createRouter, createMemoryHistory, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import User from './views/User.vue';
 import Manager from './views/Manager.vue';
 import Merchant from './views/Merchant.vue';
+import Order from './views/Order.vue';
 
 const router = createRouter({
     routes: [
         { path: '/user', component: User, },
         { path: '/manager', component: Manager, },
         { path: '/merchant/:id', component: Merchant, },
+        { path: '/order/:merchant_id/:order_id', component: Order, },
     ],
     history: createWebHistory(),
 })

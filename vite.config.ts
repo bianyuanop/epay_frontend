@@ -11,6 +11,7 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 
 let localCanisters, prodCanisters, canisters;
 
+// TODO: fix dynamic import in typescript
 function initCanisterIds() {
   try {
     localCanisters = require(path.resolve(
@@ -19,6 +20,7 @@ function initCanisterIds() {
       "canister_ids.json"
     ));
   } catch (error) {
+    console.log(error);
     console.log("No local canister_ids.json found. Continuing production");
   }
   try {
@@ -30,6 +32,10 @@ function initCanisterIds() {
   const network = process.env.DFX_NETWORK || "local";
 
   canisters = network === "local" ? localCanisters : prodCanisters;
+
+  if(network === "local") {
+    process.env['CANISTER_ID_INTERNET_IDENTITY'] = "dmalx-m4aaa-aaaaa-qaanq-cai";
+  }
 
   for (const canister in canisters) {
     process.env["VITE_APP_" + canister.toUpperCase() + "_CANISTER_ID"] =
@@ -58,8 +64,6 @@ const aliases = Object.entries(dfxJson.canisters).reduce(
   },
   {}
 );
-
-console.log(aliases);
 
 // https://vitejs.dev/config/
 export default defineConfig({

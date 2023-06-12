@@ -1,13 +1,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapState } from 'pinia';
-import { useGeneralStore } from '../stores';
-import { Principal } from '@dfinity/principal';
+import { mapActions, mapState } from 'pinia';
 import {useMessage} from 'naive-ui';
 // import {createActor, merchant} from '../declarations/merchant';
 // import {manager_actor} from '../info';
 import {user_actor} from '../info';
 import { OrderBrief } from '../declarations/user/user.did';
+import { userAuthStore } from '../stores/auth';
 // import { User } from '../declarations/user/user.did.d';
 export default defineComponent({
     setup() {
@@ -25,7 +24,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState(useGeneralStore, ['principal']),
+        ...mapState(userAuthStore, ['isAuthenticated']),
     },
     data() {
         let res: {
@@ -44,13 +43,21 @@ export default defineComponent({
         return res;
     },
     async beforeMount() {
-        if(this.principal == Principal.anonymous().toString()) {
+        let p = this.getPrincipal();
+        if(!this.isAuthenticated || p === undefined) {
             const message = useMessage();
             message.error('not logged in');
             this.$router.push('/');
+
+            return;
+        }
+
+        if(!await this.hasUser()) {
+            await user_actor.register(p);
         }
 
         let user = await this.getUser();
+
         this.id = user?.id
         this.blocked = user?.blocked;
         this.orders = user?.orders;
@@ -64,19 +71,30 @@ export default defineComponent({
         // this.merchants = [ BigInt(1), BigInt(2) ]
     },
     methods: {
+        ...mapActions(userAuthStore, ['getPrincipal']),
         async getUser() {
-            let user = await user_actor.get_user(Principal.fromText(this.principal));
-            return user[0]
+            let p = this.getPrincipal();
+            if(p) {
+                let user = await user_actor.get_user(p);
+                return user[0]
+            } else return undefined;
+        },
+        async hasUser() {
+            let p = this.getPrincipal();
+            if(p) {
+                let has = await user_actor.has_user(p);
+                return has;
+            } else return false;
         }
     }
-
 })
 </script>
 
 <template>
     <h1>User</h1>
     <n-space vertical>
-        <n-card title="ID">{{ id }}</n-card>
+        <n-card title="ID">{{ getPrincipal() }}</n-card>
+        <n-card title="Principal">{{ id }}</n-card>
         <n-card title="Status">{{ blocked?"Blocked":"Normal" }}</n-card>
         <n-card title="Orders">
             <div v-if="orders !== undefined && orders.length > 0">

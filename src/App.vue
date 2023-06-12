@@ -1,9 +1,21 @@
+<script lang="ts" setup>
+import { userAuthStore } from './stores/auth';
+
+const authStore = userAuthStore();
+const { isReady } = storeToRefs(authStore);
+
+if (isReady.value === false) {
+  authStore.init();
+}
+</script>
+
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { manager } from './declarations/manager';
 import { Principal } from '@dfinity/principal';
 import { manager_actor } from './info';
 import Header from './components/Header.vue';
+import { storeToRefs } from 'pinia';
 // import { manager } from './declarations/manager';
 
 export default defineComponent({

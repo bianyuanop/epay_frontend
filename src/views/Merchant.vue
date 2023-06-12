@@ -1,24 +1,17 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { mapState } from 'pinia';
-import { useGeneralStore } from '../stores';
+import { mapActions, mapState } from 'pinia';
 import { Principal } from '@dfinity/principal';
 import {FormInst, FormItemRule, useMessage} from 'naive-ui';
 // import {createActor, merchant} from '../declarations/merchant';
 import {manager_actor} from '../info';
 import {createActor as createMerchantActor} from '../declarations/merchant';
 import { Account } from '../declarations/merchant/merchant.did';
-import { HttpAgent } from '@dfinity/agent';
-import { AuthClient } from '@dfinity/auth-client';
-import {NFID_AUTH_URL} from '../auth';
+import { HttpAgent, Identity } from '@dfinity/agent';
+import { userAuthStore } from '../stores/auth';
 
 interface OrderPubForm {
     tokens: TokenLiteral[],
-    // tokens: {
-    //     principal: string,
-    //     standard: string,
-    //     amount: string
-    // }[],
     payload: Uint8Array,
     payload_spec: string,
     payer: string
@@ -91,7 +84,7 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapState(useGeneralStore, ['principal']),
+        ...mapState(userAuthStore, ['isAuthenticated']),
     },
     data() {
         let res: {
@@ -105,7 +98,7 @@ export default defineComponent({
         return res;
     },
     async beforeMount() {
-        if(this.principal == Principal.anonymous().toString()) {
+        if(!this.isAuthenticated) {
             const message = useMessage();
             message.error('not logged in');
             this.$router.push('/');
@@ -113,14 +106,17 @@ export default defineComponent({
 
         this.merchant_id = BigInt(parseInt(this.$route.params.id as string));
         let call_res = await manager_actor.get_merchant_by_id(this.merchant_id);
+        console.log(this.merchant_id);
         if(call_res[0]) {
             this.merchant_principal = call_res[0].toString();
+            console.log(this.merchant_principal);
         }
 
-        
+        console.log('is real authenticated: ', await this.isRealAuthenticated());
         // let merchant_actor = createMerchantActor(this.merchant_principal);
     },
     methods: {
+        ...mapActions(userAuthStore, ['getIdentity', 'isRealAuthenticated']),
         onCreateTokenItem() {
             return {
                 principal: Principal.anonymous().toString(),
@@ -136,10 +132,10 @@ export default defineComponent({
                 this.message.warning('not a valid principal');
             }
         },
-        async publish(authClient: AuthClient) {
+        async publish(identity: Identity) {
             let merchant_actor = createMerchantActor(this.merchant_principal, {
                 agent: new HttpAgent({
-                    identity: authClient.getIdentity() 
+                    identity,
                 })
             });
 
@@ -157,9 +153,11 @@ export default defineComponent({
             let payer: Account = {owner: Principal.from(this.orderPubForm.payer), subaccount: []};
 
             let publish_res = await merchant_actor.publish_order(token_principals, token_standards, token_amounts, payload, payload_spec, payer) as {
-                Ok: bigint,
-                Err: string
+                Ok: bigint | undefined,
+                Err: string | undefined
             };
+
+            console.log(publish_res)
 
             if(publish_res.Ok) {
                 let order_id = publish_res.Ok;
@@ -170,40 +168,14 @@ export default defineComponent({
             }
         },
         async publishOrder() {
-            this.message.info('publishing')
+            let identity = this.getIdentity();
 
-            let loggedIn = true;
-            const authClient = await AuthClient.create();
-            if(!(await authClient.isAuthenticated())) {
-                authClient.login({
-                    identityProvider: NFID_AUTH_URL,
-                    maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000),
-                    windowOpenerFeatures: 
-                    `left=${window.screen.width / 2 - 525 / 2}, `+ 
-                    `top=${window.screen.height / 2 - 705 / 2},` + 
-                    `toolbar=0,location=0,menubar=0,width=525,height=705`,
-                    onSuccess: async () => {
-                        console.log('successfully logged in');
-                        await this.publish(authClient);
-                    },
-                    onError: () => {
-                        this.message.error('authorize error');
-                        loggedIn = false;
-                    }
-                });
+            if(this.isAuthenticated && identity) {
+                this.publish(identity);
             } else {
-                console.log('authencated');
-                this.publish(authClient);
+                this.message.error('not logged in');
             }
-
-            if(!loggedIn) {
-                console.log('not logged in');
-                return
-            }
-
-
             
-
         }
     }
 })
