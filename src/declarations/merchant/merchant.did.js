@@ -54,6 +54,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'get_config' : IDL.Func([], [MerchantConfig], []),
+    'get_on_hold_orders' : IDL.Func([], [IDL.Vec(IDL.Nat64)], ['query']),
     'order_paid' : IDL.Func([IDL.Nat64], [Result], ['query']),
     'owner' : IDL.Func([], [IDL.Principal], ['query']),
     'pay_order' : IDL.Func([IDL.Nat64], [Result], []),

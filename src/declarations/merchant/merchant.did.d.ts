@@ -51,6 +51,7 @@ export interface _SERVICE {
     Result
   >,
   'get_config' : ActorMethod<[], MerchantConfig>,
+  'get_on_hold_orders' : ActorMethod<[], BigUint64Array | bigint[]>,
   'order_paid' : ActorMethod<[bigint], Result>,
   'owner' : ActorMethod<[], Principal>,
   'pay_order' : ActorMethod<[bigint], Result>,

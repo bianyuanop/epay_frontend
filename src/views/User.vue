@@ -88,9 +88,11 @@ export default defineComponent({
         </n-card>
         <n-card title="My Stores">
             <div v-if="merchants !== undefined && merchants.length > 0">
-                <n-space vertical v-for="merchant in merchants">
-                    <n-card>{{ merchant }}</n-card>
-                </n-space>
+                <n-list hoverable clickable v-for="merchant in merchants">
+                    <n-list-item @click="$router.push('/merchant/' + String(merchant))">
+                        <n-thing :title="String(merchant)"></n-thing>
+                    </n-list-item>
+                </n-list>
             </div>
             <div v-else>
                 Not having any stores

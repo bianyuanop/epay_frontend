@@ -24,7 +24,7 @@ export default defineComponent({
     return res;
   },
   computed: {
-    ...mapState(useGeneralStore, ['principal']),
+    ...mapState(useGeneralStore, ['principal', 'authClient']),
   },
   methods: {
     ...mapActions(useGeneralStore, ['set_principal']),
@@ -53,7 +53,6 @@ export default defineComponent({
           this.set_principal(p);
         } 
       })
-      Principal.anonymous()
     },
     isAnonymous(p: String): boolean {
       return Principal.anonymous().toString() == p;
