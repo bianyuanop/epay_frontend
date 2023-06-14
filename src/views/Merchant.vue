@@ -90,9 +90,11 @@ export default defineComponent({
         let res: {
             merchant_id: bigint,
             merchant_principal: string,
+            publish_disbaled: boolean
         } = {
             merchant_id: BigInt(-1),
             merchant_principal: Principal.anonymous().toString(),
+            publish_disbaled: false
         }
 
         return res;
@@ -162,20 +164,23 @@ export default defineComponent({
             if(publish_res.Ok) {
                 let order_id = publish_res.Ok;
                 console.log(order_id);
-                this.message.success(`successfully published with ${order_id}`)
+                this.message.success(`successfully published order with ID: ${order_id}`)
             } else {
                 console.log(publish_res.Err); 
+                this.message.error('failed to publish order')
             }
         },
         async publishOrder() {
+            this.publish_disbaled = true;
             let identity = this.getIdentity();
 
             if(this.isAuthenticated && identity) {
-                this.publish(identity);
+                await this.publish(identity);
             } else {
                 this.message.error('not logged in');
             }
-            
+
+            this.publish_disbaled = false;
         }
     }
 })
@@ -220,10 +225,15 @@ export default defineComponent({
                     </n-dynamic-input>
                 </n-form-item>
             </n-form>
-            <n-button @click="publishOrder">Publish</n-button>
+            <n-button 
+                @click="publishOrder"
+                :disabled="publish_disbaled"
+            >Publish</n-button>
         </n-card>
 
+        <n-card title="Pending Orders">
 
+        </n-card>
     </div>
 
 </template>
