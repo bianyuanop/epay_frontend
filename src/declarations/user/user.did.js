@@ -1,6 +1,5 @@
 export const idlFactory = ({ IDL }) => {
-  const Result = IDL.Variant({ 'Ok' : IDL.Bool, 'Err' : IDL.Text });
-  const Result_1 = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : IDL.Text });
+  const Result = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : IDL.Text });
   const OrderBrief = IDL.Record({
     'merchant_id' : IDL.Nat64,
     'order_id' : IDL.Nat64,
@@ -14,15 +13,11 @@ export const idlFactory = ({ IDL }) => {
     'merchants' : IDL.Vec(IDL.Nat64),
   });
   return IDL.Service({
-    'add_order' : IDL.Func([IDL.Principal, IDL.Nat64, IDL.Nat64], [Result], []),
-    'attach_merchant2user' : IDL.Func(
-        [IDL.Principal, IDL.Nat64],
-        [Result_1],
-        [],
-      ),
+    'add_order' : IDL.Func([IDL.Principal, IDL.Nat64, IDL.Nat64], [], []),
+    'attach_merchant2user' : IDL.Func([IDL.Principal, IDL.Nat64], [Result], []),
     'get_user' : IDL.Func([IDL.Principal], [IDL.Opt(User)], ['query']),
     'has_user' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
-    'register' : IDL.Func([IDL.Principal], [Result_1], []),
+    'register' : IDL.Func([IDL.Principal], [Result], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

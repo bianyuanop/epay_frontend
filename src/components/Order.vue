@@ -366,7 +366,7 @@ export default defineComponent({
         </n-list> 
     </n-card>
 
-    <n-card title="Payer Operations" v-if="is_payer">
+    <n-card title="Payer Operations">
         <n-button
             @click="approve_and_pay"
             :disabled="disablePay"

@@ -16,11 +16,17 @@ export const idlFactory = ({ IDL }) => {
     'order_on_hold_duration' : IDL.Nat64,
   });
   const Result = IDL.Variant({ 'Ok' : IDL.Bool, 'Err' : IDL.Text });
+  const TokenBalance = IDL.Record({
+    'balance' : IDL.Nat,
+    'token_info' : TokenInfo,
+  });
+  const Balance = IDL.Record({
+    'token_balances' : IDL.Vec(IDL.Tuple(IDL.Principal, TokenBalance)),
+  });
   const Account = IDL.Record({
     'owner' : IDL.Principal,
     'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
-  const Result_1 = IDL.Variant({ 'Ok' : IDL.Nat64, 'Err' : IDL.Text });
   const OrderStatus = IDL.Variant({
     'Refunded' : IDL.Null,
     'Open' : IDL.Null,
@@ -46,6 +52,23 @@ export const idlFactory = ({ IDL }) => {
     'comments' : IDL.Vec(Comment),
     'payload' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
+  const Merchant = IDL.Record({
+    'id' : IDL.Nat64,
+    'fee' : Balance,
+    'info_spec' : IDL.Opt(IDL.Text),
+    'verified' : IDL.Bool,
+    'balance' : Balance,
+    'owner' : IDL.Principal,
+    'deposit_account' : Account,
+    'conf' : MerchantConfig,
+    'blocked' : IDL.Bool,
+    'info' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+    'orders' : IDL.Vec(IDL.Tuple(IDL.Nat64, Order)),
+    'order_ptr' : IDL.Nat64,
+    'orders_on_hold' : IDL.Vec(IDL.Nat64),
+    'comments' : IDL.Vec(Comment),
+  });
+  const Result_1 = IDL.Variant({ 'Ok' : IDL.Nat64, 'Err' : IDL.Text });
   const Result_2 = IDL.Variant({ 'Ok' : Order, 'Err' : IDL.Text });
   return IDL.Service({
     'comment_order' : IDL.Func(
@@ -54,6 +77,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'get_config' : IDL.Func([], [MerchantConfig], []),
+    'get_merchant_info' : IDL.Func([], [Merchant], ['query']),
     'get_on_hold_orders' : IDL.Func([], [IDL.Vec(IDL.Nat64)], ['query']),
     'order_paid' : IDL.Func([IDL.Nat64], [Result], ['query']),
     'owner' : IDL.Func([], [IDL.Principal], ['query']),
@@ -95,5 +119,5 @@ export const init = ({ IDL }) => {
     'order_check_duration' : IDL.Nat64,
     'order_on_hold_duration' : IDL.Nat64,
   });
-  return [IDL.Principal, MerchantConfig];
+  return [IDL.Principal, IDL.Principal, IDL.Nat64, MerchantConfig];
 };

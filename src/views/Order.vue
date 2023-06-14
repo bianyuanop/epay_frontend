@@ -20,5 +20,12 @@ export default defineComponent({
 
 
 <template>
+    <div class="mt-3 mb-3">
+        <n-gradient-text type="info">
+            <div class="text-4xl">
+                ORDER
+            </div>
+        </n-gradient-text>  
+    </div>
     <OrderComponent :merchant_id="merchant_id" :order_id="order_id" />
 </template>

@@ -90,11 +90,13 @@ export default defineComponent({
         let res: {
             merchant_id: bigint,
             merchant_principal: string,
-            publish_disbaled: boolean
+            publish_disbaled: boolean,
+            order_published: bigint[],
         } = {
             merchant_id: BigInt(-1),
             merchant_principal: Principal.anonymous().toString(),
-            publish_disbaled: false
+            publish_disbaled: false,
+            order_published: []
         }
 
         return res;
@@ -161,8 +163,9 @@ export default defineComponent({
 
             console.log(publish_res)
 
-            if(publish_res.Ok) {
+            if(publish_res.Ok !== undefined) {
                 let order_id = publish_res.Ok;
+                this.order_published.push(order_id);
                 console.log(order_id);
                 this.message.success(`successfully published order with ID: ${order_id}`)
             } else {
@@ -188,13 +191,29 @@ export default defineComponent({
 </script>
 
 <template>
-    <div>
+    <div class="mt-3 mb-3">
+        <n-gradient-text type="info">
+            <div class="text-4xl">
+                MERCHANT
+            </div>
+        </n-gradient-text>  
+    </div>
+    <div> 
         <n-card title="Merchant Info">
             <div>ID: {{ merchant_id }}</div>
             <div>Canister Principal: {{ merchant_principal }}</div>
         </n-card>
-        <n-card title="Orders">
-
+        <n-card title="Orders Just Published">
+            <n-list hoverable>
+                <div v-for="order_id in order_published">
+                    <n-list-item
+                        class="cursor-pointer"
+                        @click="$router.push(`/order/${merchant_id}/${order_id}`)"
+                    >
+                        {{ order_id }}
+                    </n-list-item> 
+                </div>
+            </n-list>
         </n-card>
 
         <n-card title="Order Publish Service">

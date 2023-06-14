@@ -5,11 +5,28 @@ export interface Account {
   'owner' : Principal,
   'subaccount' : [] | [Uint8Array | number[]],
 }
+export interface Balance { 'token_balances' : Array<[Principal, TokenBalance]> }
 export interface Comment {
   'payload_spec' : string,
   'issuer' : Principal,
   'timestamp' : bigint,
   'payload' : Uint8Array | number[],
+}
+export interface Merchant {
+  'id' : bigint,
+  'fee' : Balance,
+  'info_spec' : [] | [string],
+  'verified' : boolean,
+  'balance' : Balance,
+  'owner' : Principal,
+  'deposit_account' : Account,
+  'conf' : MerchantConfig,
+  'blocked' : boolean,
+  'info' : [] | [Uint8Array | number[]],
+  'orders' : Array<[bigint, Order]>,
+  'order_ptr' : bigint,
+  'orders_on_hold' : BigUint64Array | bigint[],
+  'comments' : Array<Comment>,
 }
 export interface MerchantConfig {
   'token_allowed' : Array<TokenInfo>,
@@ -41,6 +58,7 @@ export type Result_1 = { 'Ok' : bigint } |
   { 'Err' : string };
 export type Result_2 = { 'Ok' : Order } |
   { 'Err' : string };
+export interface TokenBalance { 'balance' : bigint, 'token_info' : TokenInfo }
 export interface TokenInfo { 'principal' : Principal, 'token_type' : TokenType }
 export type TokenType = { 'ICRC1' : null } |
   { 'DIP20' : null } |
@@ -51,6 +69,7 @@ export interface _SERVICE {
     Result
   >,
   'get_config' : ActorMethod<[], MerchantConfig>,
+  'get_merchant_info' : ActorMethod<[], Merchant>,
   'get_on_hold_orders' : ActorMethod<[], BigUint64Array | bigint[]>,
   'order_paid' : ActorMethod<[bigint], Result>,
   'owner' : ActorMethod<[], Principal>,

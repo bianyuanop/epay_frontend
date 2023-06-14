@@ -1,15 +1,17 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, h } from 'vue';
 import { mapActions, mapState } from 'pinia';
-import {useMessage} from 'naive-ui';
+import {NButton} from 'naive-ui';
 // import {createActor, merchant} from '../declarations/merchant';
 // import {manager_actor} from '../info';
 import {user_actor} from '../info';
 import { OrderBrief } from '../declarations/user/user.did';
 import { userAuthStore } from '../stores/auth';
+import { useRouter } from 'vue-router';
 // import { User } from '../declarations/user/user.did.d';
 export default defineComponent({
     setup() {
+        const router = useRouter();
         return {
             columns: [
                 {
@@ -20,6 +22,22 @@ export default defineComponent({
                     title: 'Order ID',
                     key: 'order_id',
                 },
+                {
+                    title: 'Action',
+                    key: 'action',
+                    render(row: {merchant_id: bigint, order_id: bigint}) {
+                        return h(
+                            NButton,
+                            {
+                                strong: true,
+                                tertiary: true,
+                                size: 'small',
+                                onClick: () => router.push(`/order/${row.merchant_id}/${row.order_id}`)
+                            },
+                            { default: () => 'Detail' }
+                        )
+                    }
+                }
             ]
         }
     },
@@ -44,9 +62,8 @@ export default defineComponent({
     },
     async beforeMount() {
         let p = this.getPrincipal();
+        console.log(p);
         if(!this.isAuthenticated || p === undefined) {
-            const message = useMessage();
-            message.error('not logged in');
             this.$router.push('/');
 
             return;
@@ -85,13 +102,19 @@ export default defineComponent({
                 let has = await user_actor.has_user(p);
                 return has;
             } else return false;
-        }
+        },
     }
 })
 </script>
 
 <template>
-    <h1>User</h1>
+    <div class="mt-3 mb-3">
+        <n-gradient-text type="info">
+            <div class="text-4xl">
+                USER
+            </div>
+        </n-gradient-text>  
+    </div>
     <n-space vertical>
         <n-card title="ID">{{ getPrincipal() }}</n-card>
         <n-card title="Principal">{{ id }}</n-card>
@@ -117,7 +140,4 @@ export default defineComponent({
             </div>
         </n-card>
     </n-space>
-
-
-    <n-button @click="getUser">query</n-button>
 </template>

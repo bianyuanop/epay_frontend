@@ -3,8 +3,15 @@ import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { manager_actor} from '../info';
 import { userAuthStore } from '../stores/auth';
+import { useMessage } from 'naive-ui';
 
 export default defineComponent({
+  setup() {
+    const message = useMessage();
+    return {
+      message
+    }
+  },
   data() {
     let res: {
       showApplyModal: boolean,
@@ -40,10 +47,27 @@ export default defineComponent({
         if(this.percentage < 75) this.percentage = this.percentage += 1;
       }, 100)
 
-      let creation_res = await manager_actor.create_merchant(p);
-      console.log(creation_res)
+      let creation_res = await manager_actor.create_merchant(p) as {
+        Ok: bigint | undefined,
+        Err: string | undefined
+      };
+
+      if(creation_res.Ok) {
+        this.message.success('application success');
+        this.percentage = 100;
+        this.merchant_id = creation_res.Ok;
+      } else {
+        this.message.error('application failed: ' + creation_res.Err);
+        this.rejectApplication();
+      }
+
+      this.applying = false;
 
       clearInterval(ticking_handler);
+    },
+    async gotoMerchantPage() {
+      this.$router.push(`/merchant/${String(this.merchant_id)}`);
+      this.rejectApplication();
     },
     async rejectApplication() {
       this.showApplyModal = false;
@@ -52,7 +76,6 @@ export default defineComponent({
       this.percentage = 30;
     }
   }
-  
 })
 </script>
 
@@ -72,14 +95,24 @@ export default defineComponent({
       <n-modal 
         :show="showApplyModal"
         title="Merchant Application"
+        :style="{width: '600px'}"
       >
         <n-card size="small" title="Application">
           <div class="flex flex-col space-y-3" v-if="!applying">
-            <div>Are you sure to apply?</div>
-            <div class="flex flex-row space-x-5">
-              <n-button @click="acceptApplication" type="success" text>Submit</n-button>
-              <n-button @click="rejectApplication" type="default" text>Close</n-button>
+            <div v-if="merchant_id === undefined">
+              <div>Are you sure to apply?</div>
+              <div class="flex flex-row space-x-5">
+                <n-button @click="acceptApplication" type="success" text>Submit</n-button>
+                <n-button @click="rejectApplication" type="default" text>Close</n-button>
+              </div>
             </div>
+            <div v-else>
+              your merchant id is: {{ merchant_id }}
+            </div>
+            <n-button 
+              @click="gotoMerchantPage" 
+              v-if="merchant_id !== undefined"
+            >Goto Merchant Page</n-button>
           </div>
           <div v-else>
             <div>Creating...</div>
@@ -94,8 +127,14 @@ export default defineComponent({
           </div>
         </n-card>
       </n-modal>
-      <n-button @click="login_and_register">Login</n-button>
-      <n-button @click="$router.push('/user')" >Mine</n-button>
+      <n-button 
+        @click="login_and_register"
+        v-if="!isAuthenticated" 
+        >Login</n-button>
+      <n-button 
+        @click="$router.push('/user')"
+        v-else
+      >Mine</n-button>
     </div>
   </div>
 </template>

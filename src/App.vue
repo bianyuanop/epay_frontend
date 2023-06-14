@@ -47,22 +47,6 @@ export default defineComponent({
         <Header /> 
       </div> 
 
-      <div class="p-20">
-        <div class="pb-2"> GOTO: </div>
-
-
-        <div class="flex flex-col space-y-2 text-white">
-          <div 
-            class="bg-purple-500 p-5 cursor-pointer"
-            @click="$router.push('/user')"
-          >> User Panel</div>
-          <div 
-            class="bg-purple-500 p-5 cursor-pointer"
-            @click="$router.push('/merchant')"
-          >> Merchant Panel</div>
-        </div>
-      </div>
-
       <RouterView></RouterView>
     </div>
   </n-message-provider>

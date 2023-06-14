@@ -57,7 +57,14 @@ export const userAuthStore = defineStore('auth', {
     },
     actions: {
         async init() {
+            const refresh = () => {
+                this.isAuthenticated = false;
+                this.identity = null;
+            }
+
             const authClient = await AuthClient.create();
+            authClient.idleManager?.registerCallback(refresh);
+
             this.authClient = authClient;
             this.isAuthenticated = await authClient.isAuthenticated();
             this.identity = this.isAuthenticated ? authClient.getIdentity() : null;
