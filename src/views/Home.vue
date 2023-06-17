@@ -25,11 +25,6 @@ export default defineComponent({
 
 <template>
     <div>
-        <div class="w-full">
-            <n-card title="Functionalities">
-
-            </n-card>
-        </div>
         <n-card title="Payment flow">
             <n-steps vertical>
                 <n-step title="Login" description="Login by clicking the login button at the top right corner" />
@@ -38,9 +33,6 @@ export default defineComponent({
                 <n-step title="Publish Order" description="Select supported token, amount of token of the order, then publish an order for payer to pay" />
                 <n-step title="Pay Order" description="After publishing order, the published order order can be found in the 'Orders Just Published' Section, where you can click the order id, then it will dierct you to the page of order." />
             </n-steps>
-        </n-card>
-        <n-card title="Features under development">
-
         </n-card>
     </div>
 </template>
