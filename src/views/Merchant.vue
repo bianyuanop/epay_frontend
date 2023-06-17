@@ -23,6 +23,12 @@ interface TokenLiteral {
     amount: string
 }
 
+interface BalanceLiteral {
+    principal: string,
+    balance: bigint,
+    standard: string
+}
+
 export default defineComponent({
     setup() {
         const orderPubFormRef = ref<FormInst | null>(null);
@@ -74,6 +80,21 @@ export default defineComponent({
             payer: Principal.anonymous().toString(),
         } as OrderPubForm)
 
+        const balanceColumns = [
+            {
+                title: 'Principal',
+                key: 'principal'
+            },
+            {
+                title: 'Standard',
+                key: 'standard'
+            },
+            {
+                title: 'Amount',
+                key: 'balance'
+            },
+        ]
+
         const message = useMessage();
 
         return {
@@ -81,6 +102,7 @@ export default defineComponent({
             orderPubFormRules,
             orderPubForm,
             message,
+            balanceColumns
         }
     },
     computed: {
@@ -92,11 +114,17 @@ export default defineComponent({
             merchant_principal: string,
             publish_disbaled: boolean,
             order_published: bigint[],
+            orders_on_hold: bigint[],
+            balance: BalanceLiteral[],
+            allowed_tokens: string[],
         } = {
             merchant_id: BigInt(-1),
             merchant_principal: Principal.anonymous().toString(),
             publish_disbaled: false,
-            order_published: []
+            order_published: [],
+            orders_on_hold: [],
+            balance: [],
+            allowed_tokens: []
         }
 
         return res;
@@ -111,19 +139,56 @@ export default defineComponent({
         this.merchant_id = BigInt(parseInt(this.$route.params.id as string));
         let call_res = await manager_actor.get_merchant_by_id(this.merchant_id);
         console.log(this.merchant_id);
-        if(call_res[0]) {
-            this.merchant_principal = call_res[0].toString();
-            console.log(this.merchant_principal);
+        if(call_res[0] === undefined) {
+            return;
         }
 
-        console.log('is real authenticated: ', await this.isRealAuthenticated());
-        // let merchant_actor = createMerchantActor(this.merchant_principal);
+        this.merchant_principal = call_res[0].toString();
+        console.log(this.merchant_principal);
+
+        let identity = await this.getIdentity();
+        let agent: HttpAgent | undefined;
+        if(identity) {
+            agent = new HttpAgent({
+                identity,
+            }); 
+        } else {
+            agent = undefined;
+        }
+
+        let merchant_actor = createMerchantActor(this.merchant_principal, {
+            agent
+        });
+
+        let merchant_info = await merchant_actor.get_merchant_info();
+        console.log(merchant_info);
+
+        merchant_info.conf.token_allowed
+        
+        for(let token of merchant_info.conf.token_allowed) {
+            this.allowed_tokens.push(token.principal.toString());
+        }
+
+        let balance = merchant_info.balance.token_balances;
+        for(let token of balance) {
+            let item: BalanceLiteral = {
+                principal: token[0].toString(),
+                balance: token[1].balance,
+                standard: Object.keys(token[1].token_info.token_type)[0],
+            }
+
+            this.balance.push(item)
+        }
+
+        let on_hold_orders = await merchant_actor.get_on_hold_orders();
+        this.orders_on_hold = on_hold_orders as bigint[];
+        console.log(on_hold_orders);
     },
     methods: {
         ...mapActions(userAuthStore, ['getIdentity', 'isRealAuthenticated']),
         onCreateTokenItem() {
             return {
-                principal: Principal.anonymous().toString(),
+                principal: "",
                 amount: "10000000000",
                 standard: "DIP20",
             }
@@ -166,11 +231,12 @@ export default defineComponent({
             if(publish_res.Ok !== undefined) {
                 let order_id = publish_res.Ok;
                 this.order_published.push(order_id);
+                this.orders_on_hold.push(order_id);
                 console.log(order_id);
                 this.message.success(`successfully published order with ID: ${order_id}`)
             } else {
                 console.log(publish_res.Err); 
-                this.message.error('failed to publish order')
+                this.message.error('failed to publish order' + publish_res.Err)
             }
         },
         async publishOrder() {
@@ -184,8 +250,19 @@ export default defineComponent({
             }
 
             this.publish_disbaled = false;
+        },
+        tokenOptions() {
+            let res = [];
+            for(let token of this.allowed_tokens) {
+                res.push({
+                    label: token,
+                    value: token
+                })
+            }
+
+            return res;
         }
-    }
+    },
 })
 
 </script>
@@ -203,8 +280,11 @@ export default defineComponent({
             <div>ID: {{ merchant_id }}</div>
             <div>Canister Principal: {{ merchant_principal }}</div>
         </n-card>
+        <n-card title="balance">
+            <n-data-table :columns="balanceColumns" :data="balance"></n-data-table>
+        </n-card>
         <n-card title="Orders Just Published">
-            <n-list hoverable>
+            <n-list hoverable v-if="order_published.length > 0">
                 <div v-for="order_id in order_published">
                     <n-list-item
                         class="cursor-pointer"
@@ -214,6 +294,7 @@ export default defineComponent({
                     </n-list-item> 
                 </div>
             </n-list>
+            <div v-else>Empty</div>
         </n-card>
 
         <n-card title="Order Publish Service">
@@ -224,7 +305,7 @@ export default defineComponent({
                 :rules="orderPubFormRules"
                 :size="'large'"
             >
-                <n-form-item label="payer" path="payer">
+                <n-form-item label="payer(if not known in advance just leave it be anonymous)" path="payer">
                     <n-input v-model:value="orderPubForm.payer" placeholder="payer principal's here"></n-input>
                 </n-form-item>
                 <n-form-item label="tokens" path="tokens">
@@ -235,7 +316,12 @@ export default defineComponent({
                         :on-create="onCreateTokenItem"
                     >
                     <template #default="{value}">
-                        <n-input v-model:value="value.principal"></n-input>
+                        <!-- <n-input v-model:value="value.principal"></n-input> -->
+                        <n-select 
+                            v-model:value="value.principal" 
+                            :options="tokenOptions()"
+                            placeholder="select one token"
+                        ></n-select>
                         <n-input v-model:value="value.standard"></n-input>
                         <n-input v-model:value="value.amount"></n-input>
 
@@ -250,8 +336,18 @@ export default defineComponent({
             >Publish</n-button>
         </n-card>
 
-        <n-card title="Pending Orders">
-
+        <n-card title="Orders on Hold">
+            <n-list hoverable v-if="orders_on_hold.length > 0">
+                <div v-for="order_id in orders_on_hold">
+                    <n-list-item
+                        class="cursor-pointer"
+                        @click="$router.push(`/order/${merchant_id}/${order_id}`)"
+                    >
+                        {{ order_id }}
+                    </n-list-item> 
+                </div>
+            </n-list>
+            <div v-else>No order on hold</div>
         </n-card>
     </div>
 

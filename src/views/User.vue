@@ -116,8 +116,8 @@ export default defineComponent({
         </n-gradient-text>  
     </div>
     <n-space vertical>
-        <n-card title="ID">{{ getPrincipal() }}</n-card>
-        <n-card title="Principal">{{ id }}</n-card>
+        <n-card title="ID">{{ id }}</n-card>
+        <n-card title="Principal">{{ getPrincipal() }}</n-card>
         <n-card title="Status">{{ blocked?"Blocked":"Normal" }}</n-card>
         <n-card title="Orders">
             <div v-if="orders !== undefined && orders.length > 0">
