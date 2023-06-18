@@ -14,7 +14,7 @@ and then to host an internet identity canister locally, instructions can be foun
 
 After hosting an internet identity canister, substitute the canister id at [here](https://github.com/bianyuanop/epay_frontend/blob/main/vite.config.ts#L37) to the id you just obtained.
 
-Then at the `src/info.ts` file, change the `MANAGER` and `USER` canister principals you deployed in the backend. 
+Then at the `src/info.ts` file, change the `MANAGER` and `USER` canister principals to the canisters you deployed in the [backend](https://github.com/bianyuanop/ePay). 
 
 To install dependencies
 
@@ -31,4 +31,3 @@ npm run dev
 ### Vite config
 
 you may need to change the proxy section at `vite.config.ts` [here](https://github.com/bianyuanop/epay_frontend/blob/main/vite.config.ts#L101)
-
