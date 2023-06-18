@@ -1,18 +1,34 @@
-# Vue 3 + TypeScript + Vite
+# ePay demo frontend 
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+This frontend is can be now only used locally since there is a compiling issue I met when I want to build and upload this to IC main net. A demonstration video is recorded and you can find the video [here](https://www.youtube.com/watch?v=qlpDlo1tyD0)
 
-## Recommended IDE Setup
+## Developer guides
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+To let this frontend running locally, you need to type
 
-## Type Support For `.vue` Imports in TS
+```
+dfx cansiter create ePay_frontend
+```
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+and then to host an internet identity canister locally, instructions can be found [here](https://forum.dfinity.org/t/how-to-run-internet-identity-locally-without-docker/17777)
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+After hosting an internet identity canister, substitute the canister id at [here](https://github.com/bianyuanop/epay_frontend/blob/main/vite.config.ts#L37) to the id you just obtained.
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+Then at the `src/info.ts` file, change the `MANAGER` and `USER` canister principals you deployed in the backend. 
+
+To install dependencies
+
+```
+npm install
+```
+
+To host
+
+```
+npm run dev
+```
+
+### Vite config
+
+you may need to change the proxy section at `vite.config.ts` [here](https://github.com/bianyuanop/epay_frontend/blob/main/vite.config.ts#L101)
+
